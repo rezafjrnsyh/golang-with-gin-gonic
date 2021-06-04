@@ -1,15 +1,13 @@
 package api
 
 import (
-	"baf/controllers"
+	"baf/api/config"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"log"
 	"os"
 )
-
-var server = controllers.Server{}
 func Run() {
 
 	gin.SetMode(gin.ReleaseMode)
@@ -23,7 +21,10 @@ func Run() {
 		fmt.Println("We are getting the env values")
 	}
 
-	server.Initialize(os.Getenv("DB_DRIVER"), os.Getenv("DB_USER"), os.Getenv("DB_PASSWORD"), os.Getenv("DB_PORT"), os.Getenv("DB_HOST"), os.Getenv("DB_NAME"))
-	server.Run(":8800")
+	db := config.ConnectDB(os.Getenv("DB_DRIVER"), os.Getenv("DB_USER"), os.Getenv("DB_PASSWORD"),
+		os.Getenv("DB_PORT"), os.Getenv("DB_HOST"), os.Getenv("DB_NAME"))
+	r := config.CreateRouter()
+	config.InitRouter(db, r).InitializeRoutes()
+	config.Run(r, ":8800")
 
 }
