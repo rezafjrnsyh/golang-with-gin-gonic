@@ -22,7 +22,7 @@ func ConnectDB(Dbdriver, DbUser, DbPassword, DbPort, DbHost, DbName string) (db 
 
 	if err := db.Ping(); err != nil {
 		log.Print(err)
-		fmt.Scanln()
+		_, _ = fmt.Scanln()
 		log.Fatal(err)
 	}
 	log.Println("DataBase Successfully Connected")
