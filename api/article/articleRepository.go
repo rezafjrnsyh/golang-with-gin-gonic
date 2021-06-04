@@ -11,11 +11,11 @@ type articleRepo struct {
 	db	*sql.DB
 }
 
-type RepositoryArticle interface {
+type IArticleRepository interface {
 	GetAllArticle() (*[]Article, error)
 }
 
-func ConstructorArticle(db *sql.DB) RepositoryArticle {
+func NewArticleRepo(db *sql.DB) IArticleRepository {
 	return &articleRepo{db}
 }
 

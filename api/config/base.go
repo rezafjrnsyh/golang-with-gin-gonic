@@ -14,8 +14,8 @@ type Server struct {
 	Router *gin.Engine
 }
 
-func ConnectDB(Dbdriver, DbUser, DbPassword, DbPort, DbHost, DbName string) (db *sql.DB) {
-	db, err := sql.Open(Dbdriver, DbUser+":"+DbPassword+"@tcp("+DbHost+":"+DbPort+")/"+DbName)
+func ConnectDB(DbDriver, DbUser, DbPassword, DbPort, DbHost, DbName string) (db *sql.DB) {
+	db, err := sql.Open(DbDriver, DbUser+":"+DbPassword+"@tcp("+DbHost+":"+DbPort+")/"+DbName)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -41,7 +41,7 @@ func InitRouter(db *sql.DB, r *gin.Engine) *Server {
 }
 
 func (server *Server) InitializeRoutes()  {
-	article.InitializeRoutesPost(server.Router)
+	article.InitializeRoutesArticle(server.DB, server.Router)
 }
 
 func Run(r *gin.Engine, addr string) {
