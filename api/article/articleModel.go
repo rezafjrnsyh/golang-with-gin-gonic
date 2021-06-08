@@ -6,13 +6,5 @@ type Article struct {
 	Content string `json:"content" form:"content" binding:"required"`
 }
 
-var Schema = `
-DROP TABLE IF EXISTS article;
-CREATE TABLE article (
-	id    INTEGER PRIMARY KEY,
-    title VARCHAR(80)  DEFAULT '',
-    content  VARCHAR(330)  DEFAULT '',
-);`
-
 
 

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strings"
 )
 
 type articleController struct {
@@ -16,8 +17,8 @@ func CreateArticleController(db *sql.DB, r *gin.Engine)  {
 	Controller := articleController{ArticleService: ConstructorArticleService(db)}
 	postRoutes := r.Group("/api/article/")
 		{
-			postRoutes.GET("/list", Controller.GetAllArticle )
-			postRoutes.POST("/", Controller.AddArticle)
+			postRoutes.GET("/list", utils.Auth, Controller.GetAllArticle )
+			postRoutes.POST("/", utils.Auth, Controller.AddArticle)
 		}
 }
 
@@ -36,8 +37,9 @@ func (s *articleController) AddArticle(c *gin.Context) {
 	var article Article
 	err := c.BindJSON(&article)
 	if err != nil {
-		fmt.Println(err["Error"].)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		s := strings.Split(err.Error(), "'")
+		errField := fmt.Errorf("field %s can't be empty", s[3])
+		c.JSON(http.StatusBadRequest, gin.H{"message": errField.Error(), "code": 400})
 	} else {
 		title := c.DefaultPostForm("title", "Guest")
 		content := c.PostForm("content")
@@ -46,10 +48,11 @@ func (s *articleController) AddArticle(c *gin.Context) {
 		newArticle, err := s.ArticleService.AddArticle(&article)
 
 		if err != nil {
-			c.JSON(http.StatusBadRequest, err.Error())
-			return
+			c.JSON(http.StatusInternalServerError,
+				gin.H{"code": http.StatusInternalServerError, "message": "Internal Server Error"})
+			//return
+		} else {
+			c.JSON(http.StatusCreated, utils.Response(http.StatusCreated, "Article successfully created", newArticle))
 		}
-
-		c.JSON(http.StatusCreated, utils.Response(http.StatusCreated, "Article successfully created", newArticle))
 	}
 }

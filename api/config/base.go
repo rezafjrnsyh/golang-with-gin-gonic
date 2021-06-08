@@ -2,13 +2,12 @@ package config
 
 import (
 	"baf/api/article"
-	"context"
+	"baf/api/user"
 	"database/sql"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 	"log"
-	"time"
 )
 
 type Server struct {
@@ -23,10 +22,10 @@ func ConnectDB(DbDriver, DbUser, DbPassword, DbPort, DbHost, DbName string) (*sq
 	}
 
 	query := `CREATE TABLE IF NOT EXISTS article(id int primary key auto_increment, title text, content text)`
-	ctx, cancelfunc := context.WithTimeout(context.Background(), 5*time.Second)
-
-	defer cancelfunc()
-	_, err = db.ExecContext(ctx, query)
+	//ctx, cancelfunc := context.WithTimeout(context.Background(), 5*time.Second)
+	//
+	//defer cancelfunc()
+	_, err = db.Exec(query)
 	if err != nil {
 		log.Printf("Error %s when creating product table", err)
 		return nil, err
@@ -55,6 +54,7 @@ func InitRouter(db *sql.DB, r *gin.Engine) *Server {
 
 func (server *Server) InitializeRoutes()  {
 	article.CreateArticleController(server.DB, server.Router)
+	user.CreateUserController(server.Router)
 }
 
 func Run(r *gin.Engine, addr string) {

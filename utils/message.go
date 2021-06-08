@@ -6,6 +6,6 @@ type ResponseMessage struct {
 	Data	interface{}
 }
 
-func Response(code int, desc string, data interface{}) *ResponseMessage {
-	return &ResponseMessage{Code: code,Description: desc, Data: data}
+func Response(code int, desc string, data interface{}) ResponseMessage {
+	return ResponseMessage{Code: code,Description: desc, Data: data}
 }

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"log"
+	"strings"
 )
 
 type articleRepo struct {
@@ -33,7 +34,7 @@ func (a *articleRepo) GetAllArticle() ([]Article, error) {
 	}
 
 	for rows.Next() {
-		err := rows.Scan(&article.Title, &article.Content)
+		err := rows.Scan(&article.ID,&article.Title, &article.Content)
 		if err != nil {
 			log.Println(err)
 			return nil, err
@@ -46,6 +47,11 @@ func (a *articleRepo) GetAllArticle() ([]Article, error) {
 func (a *articleRepo) AddArticle(article *Article) (*Article, error) {
 	query := fmt.Sprintf(`INSERT INTO article(id,title, content) VALUES (?, ?,?)`)
 	stmnt, err := a.db.Prepare(query)
+	if err != nil {
+		s := strings.Split(err.Error(), ":")
+		log.Println(s[1])
+		return nil, err
+	}
 	defer stmnt.Close()
 
 	result, err := stmnt.Exec(&article.ID, &article.Title, &article.Content)
