@@ -2,11 +2,13 @@ package config
 
 import (
 	"baf/api/article"
+	"context"
 	"database/sql"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 	"log"
+	"time"
 )
 
 type Server struct {
@@ -14,11 +16,22 @@ type Server struct {
 	Router *gin.Engine
 }
 
-func ConnectDB(DbDriver, DbUser, DbPassword, DbPort, DbHost, DbName string) (db *sql.DB) {
+func ConnectDB(DbDriver, DbUser, DbPassword, DbPort, DbHost, DbName string) (*sql.DB, error) {
 	db, err := sql.Open(DbDriver, DbUser+":"+DbPassword+"@tcp("+DbHost+":"+DbPort+")/"+DbName)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	query := `CREATE TABLE IF NOT EXISTS article(id int primary key auto_increment, title text, content text)`
+	ctx, cancelfunc := context.WithTimeout(context.Background(), 5*time.Second)
+
+	defer cancelfunc()
+	_, err = db.ExecContext(ctx, query)
+	if err != nil {
+		log.Printf("Error %s when creating product table", err)
+		return nil, err
+	}
+
 
 	if err := db.Ping(); err != nil {
 		log.Print(err)
@@ -26,7 +39,7 @@ func ConnectDB(DbDriver, DbUser, DbPassword, DbPort, DbHost, DbName string) (db 
 		log.Fatal(err)
 	}
 	log.Println("DataBase Successfully Connected")
-	return db
+	return db, nil
 }
 
 func CreateRouter() *gin.Engine {
@@ -41,7 +54,7 @@ func InitRouter(db *sql.DB, r *gin.Engine) *Server {
 }
 
 func (server *Server) InitializeRoutes()  {
-	article.InitializeRoutesArticle(server.DB, server.Router)
+	article.CreateArticleController(server.DB, server.Router)
 }
 
 func Run(r *gin.Engine, addr string) {

@@ -21,8 +21,9 @@ func Run() {
 		fmt.Println("We are getting the env values")
 	}
 
-	db := config.ConnectDB(os.Getenv("DB_DRIVER"), os.Getenv("DB_USER"), os.Getenv("DB_PASSWORD"),
+	db, err := config.ConnectDB(os.Getenv("DB_DRIVER"), os.Getenv("DB_USER"), os.Getenv("DB_PASSWORD"),
 		os.Getenv("DB_PORT"), os.Getenv("DB_HOST"), os.Getenv("DB_NAME"))
+
 	r := config.CreateRouter()
 	config.InitRouter(db, r).InitializeRoutes()
 	config.Run(r, ":8800")
