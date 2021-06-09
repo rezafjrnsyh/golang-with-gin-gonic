@@ -1,39 +1,38 @@
 package article
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"log"
 	"strings"
+	"time"
 )
 
 type articleRepo struct {
 	db	*sql.DB
 }
 
-type IArticleRepository interface {
-	GetAllArticle() ([]Article, error)
-	AddArticle(article *Article) (*Article, error)
-}
-
 func NewArticleRepo(db *sql.DB) IArticleRepository {
 	return &articleRepo{db}
 }
 
-func (a *articleRepo) GetAllArticle() ([]Article, error) {
-	var article Article
-	var articles []Article
+func (a *articleRepo) FindArticle() ([]*Article, error) {
+	articles := make([]*Article, 0)
 
-	queryInput := fmt.Sprintf("SELECT * FROM article")
-	rows, err := a.db.Query(queryInput)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	rows, err := a.db.QueryContext(ctx, "SELECT id, title, content FROM article")
 	if err != nil {
-		log.Println(err)
 		return nil, err
 	}
+	defer rows.Close()
 
 	for rows.Next() {
+		article := new(Article)
 		err := rows.Scan(&article.ID,&article.Title, &article.Content)
 		if err != nil {
 			log.Println(err)
@@ -44,17 +43,21 @@ func (a *articleRepo) GetAllArticle() ([]Article, error) {
 	return articles, nil
 }
 
-func (a *articleRepo) AddArticle(article *Article) (*Article, error) {
+func (a *articleRepo) CreateArticle(article *Article) (*Article, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
 	query := fmt.Sprintf(`INSERT INTO article(id,title, content) VALUES (?, ?,?)`)
-	stmnt, err := a.db.Prepare(query)
+	stmt, err := a.db.PrepareContext(ctx,query)
 	if err != nil {
 		s := strings.Split(err.Error(), ":")
 		log.Println(s[1])
 		return nil, err
 	}
-	defer stmnt.Close()
+	defer stmt.Close()
 
-	result, err := stmnt.Exec(&article.ID, &article.Title, &article.Content)
+	result, err := stmt.ExecContext(ctx, &article.ID, &article.Title, &article.Content)
+	fmt.Println("res:", &result)
 	if err != nil {
 		log.Printf("Error %s when preparing SQL statement", err)
 		return nil, err
@@ -62,18 +65,43 @@ func (a *articleRepo) AddArticle(article *Article) (*Article, error) {
 
 	lastIndex, _ := result.LastInsertId()
 
-	return a.GETMenu(int(lastIndex))
+	return a.FindArticleById(int(lastIndex))
 }
 
-func (p *articleRepo) GETMenu(id int) (*Article, error) {
-	fmt.Println(id)
-	results := p.db.QueryRow("SELECT * FROM article WHERE id=?", id)
+func (a *articleRepo) FindArticleById(id int) (*Article, error) {
+	article := new(Article)
 
-	var a Article
-	err := results.Scan(&a.ID,&a.Title, &a.Content)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	err := a.db.QueryRowContext(ctx, "SELECT id, title, content FROM article WHERE id=?", id).
+		Scan(&article.ID,&article.Title, &article.Content)
 	if err != nil {
-		return nil, errors.New("Article ID Not Found")
+		return nil, errors.New("article ID not found")
 	}
+	return article, nil
+}
 
-	return &a, nil
+func (a *articleRepo) Delete(id int) (int64, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	query := "DELETE FROM article WHERE id = ?"
+	stmt, err := a.db.PrepareContext(ctx, query)
+	if err != nil {
+		return 0, err
+	}
+	defer stmt.Close()
+
+	result, err := stmt.ExecContext(ctx, id)
+	if err != nil {
+		fmt.Println("Error updating row: " + err.Error())
+		errorMsg := errors.New("DATABASE ERROR - " + err.Error())
+		return 0, errorMsg
+	}
+	RowsAffected, err := result.RowsAffected()
+	if err != nil {
+		fmt.Println("RowsAffected Error", err)
+	}
+	return RowsAffected,nil
 }

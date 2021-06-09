@@ -1,4 +1,4 @@
-package utils
+package middleware
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 
 func Auth(c *gin.Context) {
 	tokenString := c.Request.Header.Get("Authorization")
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+	token, _ := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if jwt.GetSigningMethod("HS256") != token.Method {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
@@ -18,12 +18,13 @@ func Auth(c *gin.Context) {
 	})
 
 	// if token.Valid && err == nil {
-	if token != nil && err == nil {
+	if token != nil {
 		fmt.Println("token verified")
 	} else {
+		fmt.Println("masuk")
 		result := gin.H{
-			"message": "not authorized",
-			"error":   err.Error(),
+			"code": 401,
+			"message": "Unauthorized",
 		}
 		c.JSON(http.StatusUnauthorized, result)
 		c.Abort()

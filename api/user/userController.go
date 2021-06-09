@@ -4,6 +4,8 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"os"
+	"time"
 )
 
 func CreateUserController(r *gin.Engine) {
@@ -14,36 +16,42 @@ func CreateUserController(r *gin.Engine) {
 }
 
 func loginHandler(c *gin.Context) {
-	var user User
-	err := c.Bind(&user)
+	var credential Credential
+	err := c.Bind(&credential)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  http.StatusBadRequest,
 			"message": "can't bind struct",
 		})
 	}
-	if user.Username != "myname" {
+	if credential.Username != User1.Username || credential.Password != User1.Password {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"status":  http.StatusUnauthorized,
-			"message": "wrong username or password",
+			"message": "Please provide valid login details",
 		})
-	} else {
-		if user.Password != "myname123" {
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"status":  http.StatusUnauthorized,
-				"message": "wrong username or password",
-			})
-		}
+		return
 	}
-	sign := jwt.New(jwt.GetSigningMethod("HS256"))
-	token, err := sign.SignedString([]byte("secret"))
+
+	token, err := CreateToken(User1.ID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": err.Error(),
-		})
-		c.Abort()
+		c.JSON(http.StatusUnprocessableEntity, err.Error())
+		return
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"token": token,
-	})
+	c.JSON(http.StatusOK, gin.H{"token": token})
+}
+
+func CreateToken(userId uint64) (string, error) {
+	var err error
+	//Creating Access Token
+	_ = os.Setenv("ACCESS_SECRET", "jdnfksdmfksd") //this should be in an env file
+	atClaims := jwt.MapClaims{}
+	atClaims["authorized"] = true
+	atClaims["user_id"] = userId
+	atClaims["exp"] = time.Now().Add(time.Minute * 15).Unix()
+	at := jwt.NewWithClaims(jwt.SigningMethodHS256, atClaims)
+	token, err := at.SignedString([]byte(os.Getenv("ACCESS_SECRET")))
+	if err != nil {
+		return "", err
+	}
+	return token, nil
 }

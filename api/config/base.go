@@ -41,6 +41,10 @@ func ConnectDB(DbDriver, DbUser, DbPassword, DbPort, DbHost, DbName string) (*sq
 	return db, nil
 }
 
+func (server *Server) Close() {
+	_ = server.DB.Close()
+}
+
 func CreateRouter() *gin.Engine {
 	return gin.Default()
 }

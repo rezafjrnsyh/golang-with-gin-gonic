@@ -1,11 +1,14 @@
 package article
 
 import (
+	"baf/middleware"
 	"baf/utils"
 	"database/sql"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -17,8 +20,10 @@ func CreateArticleController(db *sql.DB, r *gin.Engine)  {
 	Controller := articleController{ArticleService: ConstructorArticleService(db)}
 	postRoutes := r.Group("/api/article/")
 		{
-			postRoutes.GET("/list", utils.Auth, Controller.GetAllArticle )
-			postRoutes.POST("/", utils.Auth, Controller.AddArticle)
+			postRoutes.GET("/list", middleware.Auth, Controller.GetAllArticle )
+			postRoutes.POST("/",middleware.Auth, Controller.AddArticle)
+			postRoutes.GET("/:id", middleware.Auth, Controller.GetArticleById)
+			postRoutes.DELETE("/:id", middleware.Auth, Controller.DeleteArticle)
 		}
 }
 
@@ -54,5 +59,37 @@ func (s *articleController) AddArticle(c *gin.Context) {
 		} else {
 			c.JSON(http.StatusCreated, utils.Response(http.StatusCreated, "Article successfully created", newArticle))
 		}
+	}
+}
+
+func (s *articleController) GetArticleById(c *gin.Context) {
+	param := c.Param("id")
+	id,err := strconv.Atoi(param)
+	if err != nil {
+		log.Println("Failed to converted to int")
+		c.JSON(http.StatusInternalServerError, gin.H{"code" : 500, "message" : "Internal Server Error"})
+	}
+	article, er := s.ArticleService.GetArticle(id)
+	if er != nil {
+		log.Println(er.Error())
+		c.JSON(http.StatusBadRequest, gin.H{"code" : 400, "message" : "data not found"})
+	} else {
+		c.JSON(http.StatusOK, gin.H{"code": 200, "message": "ok", "data": article})
+	}
+}
+
+func (s *articleController) DeleteArticle(c *gin.Context) {
+	param := c.Param("id")
+	id,err := strconv.Atoi(param)
+	if err != nil {
+		log.Println("Failed to converted to int")
+		c.JSON(http.StatusInternalServerError, gin.H{"code" : 500, "message" : "Internal Server Error"})
+	}
+	result, err := s.ArticleService.DeleteArticle(id)
+	log.Println("rows:",result)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"code" : 500, "message" : "Internal server error"})
+	} else {
+		c.JSON(http.StatusOK, gin.H{"code": 200, "message": "Data deleted successfully", "data": result})
 	}
 }
