@@ -1,27 +1,22 @@
-package article
+package service
 
 import (
+	"baf/api/app/repository"
+	"baf/api/domain"
 	"database/sql"
 	"fmt"
 )
 
 type articleService struct {
-	db	*sql.DB
-	ArticleRepo IArticleRepository
+	db          *sql.DB
+	ArticleRepo domain.IArticleRepository
 }
 
-type IArticleService interface {
-	GetArticles() ([]*Article, error)
-	AddArticle(article *Article) (*Article, error)
-	GetArticle(id int) (*Article, error)
-	DeleteArticle(id int) (int64,error)
+func ConstructorArticleService(db *sql.DB) domain.IArticleService {
+	return &articleService{db, repository.NewArticleRepo(db)}
 }
 
-func ConstructorArticleService(db *sql.DB) IArticleService {
-	return &articleService{db, NewArticleRepo(db)}
-}
-
-func (a *articleService) GetArticles() ([]*Article, error) {
+func (a *articleService) GetArticles() ([]*domain.Article, error) {
 	articles,err := a.ArticleRepo.FindArticle()
 	if err != nil {
 		return nil, err
@@ -30,7 +25,7 @@ func (a *articleService) GetArticles() ([]*Article, error) {
 	return articles, nil
 }
 
-func (a *articleService) AddArticle(article *Article) (*Article, error) {
+func (a *articleService) AddArticle(article *domain.Article) (*domain.Article, error) {
 	article, err := a.ArticleRepo.CreateArticle(article)
 	fmt.Println("Service :", article)
 	if err != nil {
@@ -40,7 +35,7 @@ func (a *articleService) AddArticle(article *Article) (*Article, error) {
 	return article, nil
 }
 
-func (a *articleService) GetArticle(id int) (*Article, error) {
+func (a *articleService) GetArticle(id int) (*domain.Article, error) {
 	article, err := a.ArticleRepo.FindArticleById(id)
 	if err != nil{
 		return nil, err

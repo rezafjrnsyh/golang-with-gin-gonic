@@ -1,6 +1,8 @@
-package article
+package controller
 
 import (
+	"baf/api/app/service"
+	"baf/api/domain"
 	"baf/middleware"
 	"baf/utils"
 	"database/sql"
@@ -13,18 +15,15 @@ import (
 )
 
 type articleController struct {
-	ArticleService IArticleService
+	ArticleService domain.IArticleService
 }
 
-func CreateArticleController(db *sql.DB, r *gin.Engine)  {
-	Controller := articleController{ArticleService: ConstructorArticleService(db)}
-	postRoutes := r.Group("/api/article/")
-		{
-			postRoutes.GET("/list", middleware.Auth, Controller.GetAllArticle )
-			postRoutes.POST("/",middleware.Auth, Controller.AddArticle)
-			postRoutes.GET("/:id", middleware.Auth, Controller.GetArticleById)
-			postRoutes.DELETE("/:id", middleware.Auth, Controller.DeleteArticle)
-		}
+func CreateArticleController(db *sql.DB, r *gin.RouterGroup)  {
+	Controller := articleController{ArticleService: service.ConstructorArticleService(db)}
+	r.GET("/article/list", middleware.Auth, Controller.GetAllArticle )
+	r.POST("/article",middleware.Auth, Controller.AddArticle)
+	r.GET("/article/:id", middleware.Auth, Controller.GetArticleById)
+	r.DELETE("/article/:id", middleware.Auth, Controller.DeleteArticle)
 }
 
 func (s *articleController) GetAllArticle(c *gin.Context) {
@@ -39,7 +38,7 @@ func (s *articleController) GetAllArticle(c *gin.Context) {
 }
 
 func (s *articleController) AddArticle(c *gin.Context) {
-	var article Article
+	var article domain.Article
 	err := c.BindJSON(&article)
 	if err != nil {
 		s := strings.Split(err.Error(), "'")

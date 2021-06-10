@@ -1,6 +1,7 @@
-package user
+package controller
 
 import (
+	"baf/api/domain"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -16,7 +17,7 @@ func CreateUserController(r *gin.Engine) {
 }
 
 func loginHandler(c *gin.Context) {
-	var credential Credential
+	var credential domain.Credential
 	err := c.Bind(&credential)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -24,7 +25,7 @@ func loginHandler(c *gin.Context) {
 			"message": "can't bind struct",
 		})
 	}
-	if credential.Username != User1.Username || credential.Password != User1.Password {
+	if credential.Username != domain.User1.Username || credential.Password != domain.User1.Password {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"status":  http.StatusUnauthorized,
 			"message": "Please provide valid login details",
@@ -32,7 +33,7 @@ func loginHandler(c *gin.Context) {
 		return
 	}
 
-	token, err := CreateToken(User1.ID)
+	token, err := CreateToken(domain.User1.ID)
 	if err != nil {
 		c.JSON(http.StatusUnprocessableEntity, err.Error())
 		return

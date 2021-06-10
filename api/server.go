@@ -2,29 +2,27 @@ package api
 
 import (
 	"baf/api/config"
-	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
+	"github.com/spf13/viper"
 	"log"
-	"os"
 )
-func Run() {
 
-	gin.SetMode(gin.ReleaseMode)
-
-	var err error
-	err = godotenv.Load()
-
+func init() {
+	viper.SetConfigFile(`config.json`)
+	err := viper.ReadInConfig()
 	if err != nil {
-		log.Fatalf("Error getting env, %v", err)
-	} else {
-		fmt.Println("We are getting the env values")
+		panic(err)
 	}
 
-	db, err := config.ConnectDB(os.Getenv("DB_DRIVER"), os.Getenv("DB_USER"), os.Getenv("DB_PASSWORD"),
-		os.Getenv("DB_PORT"), os.Getenv("DB_HOST"), os.Getenv("DB_NAME"))
+	if viper.GetBool(`debug`) {
+		log.Println("Service RUN on DEBUG mode")
+	}
+}
 
+func Run() {
 	r := config.CreateRouter()
+
+	db := config.ConnectDB()
+
 	config.InitRouter(db, r).InitializeRoutes()
 	config.Run(r, ":8800")
 

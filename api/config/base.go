@@ -1,13 +1,14 @@
 package config
 
 import (
-	"baf/api/article"
-	"baf/api/user"
+	"baf/api/app/controller"
 	"database/sql"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/spf13/viper"
 	"log"
+	"net/url"
 )
 
 type Server struct {
@@ -15,8 +16,17 @@ type Server struct {
 	Router *gin.Engine
 }
 
-func ConnectDB(DbDriver, DbUser, DbPassword, DbPort, DbHost, DbName string) (*sql.DB, error) {
-	db, err := sql.Open(DbDriver, DbUser+":"+DbPassword+"@tcp("+DbHost+":"+DbPort+")/"+DbName)
+func ConnectDB() *sql.DB {
+	dbHost := viper.GetString(`database.host`)
+	dbPort := viper.GetString(`database.port`)
+	dbUser := viper.GetString(`database.user`)
+	dbPass := viper.GetString(`database.pass`)
+	dbName := viper.GetString(`database.name`)
+	connection := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", dbUser, dbPass, dbHost, dbPort, dbName)
+	val := url.Values{}
+	val.Add("loc", "Asia/Jakarta")
+	dsn := fmt.Sprintf("%s?%s", connection, val.Encode())
+	db, err := sql.Open(`mysql`, dsn)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -28,7 +38,7 @@ func ConnectDB(DbDriver, DbUser, DbPassword, DbPort, DbHost, DbName string) (*sq
 	_, err = db.Exec(query)
 	if err != nil {
 		log.Printf("Error %s when creating product table", err)
-		return nil, err
+		return nil
 	}
 
 
@@ -38,7 +48,7 @@ func ConnectDB(DbDriver, DbUser, DbPassword, DbPort, DbHost, DbName string) (*sq
 		log.Fatal(err)
 	}
 	log.Println("DataBase Successfully Connected")
-	return db, nil
+	return db
 }
 
 func (server *Server) Close() {
@@ -46,6 +56,7 @@ func (server *Server) Close() {
 }
 
 func CreateRouter() *gin.Engine {
+	gin.SetMode(gin.ReleaseMode)
 	return gin.Default()
 }
 
@@ -57,8 +68,9 @@ func InitRouter(db *sql.DB, r *gin.Engine) *Server {
 }
 
 func (server *Server) InitializeRoutes()  {
-	article.CreateArticleController(server.DB, server.Router)
-	user.CreateUserController(server.Router)
+	r := server.Router.Group("/v1")
+	controller.CreateArticleController(server.DB, r)
+	controller.CreateUserController(server.Router)
 }
 
 func Run(r *gin.Engine, addr string) {
