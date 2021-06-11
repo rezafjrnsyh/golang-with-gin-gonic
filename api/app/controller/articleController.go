@@ -18,12 +18,12 @@ type articleController struct {
 	ArticleService domain.IArticleService
 }
 
-func CreateArticleController(db *sql.DB, r *gin.RouterGroup)  {
-	Controller := articleController{ArticleService: service.ConstructorArticleService(db)}
-	r.GET("/article/list", middleware.Auth, Controller.GetAllArticle )
-	r.POST("/article",middleware.Auth, Controller.AddArticle)
-	r.GET("/article/:id", middleware.Auth, Controller.GetArticleById)
-	r.DELETE("/article/:id", middleware.Auth, Controller.DeleteArticle)
+func NewArticleController(db *sql.DB, r *gin.RouterGroup)  {
+	Controller := articleController{ArticleService: service.NewArticleService(db)}
+	r.GET("/article/list", Controller.GetAllArticle )
+	r.POST("/article",middleware.Auth2, Controller.AddArticle)
+	r.GET("/article/:id", middleware.Auth2, Controller.GetArticleById)
+	r.DELETE("/article/:id", middleware.Auth2, Controller.DeleteArticle)
 }
 
 func (s *articleController) GetAllArticle(c *gin.Context) {

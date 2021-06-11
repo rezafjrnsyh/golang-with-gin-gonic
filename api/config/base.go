@@ -69,11 +69,12 @@ func InitRouter(db *sql.DB, r *gin.Engine) *Server {
 
 func (server *Server) InitializeRoutes()  {
 	r := server.Router.Group("/v1")
-	controller.CreateArticleController(server.DB, r)
+	controller.NewArticleController(server.DB, r)
 	controller.CreateUserController(server.Router)
 }
 
-func Run(r *gin.Engine, addr string) {
+func Run(r *gin.Engine) {
+	port := viper.GetString(`server.port`)
 	fmt.Println("Listening to port 8800")
-	log.Fatal(r.Run(addr))
+	log.Fatal(r.Run(port))
 }

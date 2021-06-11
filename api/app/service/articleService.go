@@ -12,7 +12,7 @@ type articleService struct {
 	ArticleRepo domain.IArticleRepository
 }
 
-func ConstructorArticleService(db *sql.DB) domain.IArticleService {
+func NewArticleService(db *sql.DB) domain.IArticleService {
 	return &articleService{db, repository.NewArticleRepo(db)}
 }
 

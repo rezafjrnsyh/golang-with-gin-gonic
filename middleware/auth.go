@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	 log "github.com/sirupsen/logrus"
 	"net/http"
 )
 
@@ -28,5 +29,21 @@ func Auth(c *gin.Context) {
 		}
 		c.JSON(http.StatusUnauthorized, result)
 		c.Abort()
+	}
+}
+
+func Auth2(c *gin.Context)  {
+	user, password, hasAuth := c.Request.BasicAuth()
+	if hasAuth && user == "root" && password == "root" {
+		fmt.Println("called")
+		log.WithFields(log.Fields{
+			"user": user,
+		}).Info("User authenticated")
+	} else {
+		fmt.Println("called 2")
+		c.JSON(400, gin.H{"code" : 400, "message" : "Username or Password is incorrect"})
+		c.Abort()
+		c.Writer.Header().Set("WWW-Authenticate", "Basic realm=Restricted")
+		return
 	}
 }

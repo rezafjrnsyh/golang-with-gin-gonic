@@ -3,10 +3,11 @@ package api
 import (
 	"baf/api/config"
 	"github.com/spf13/viper"
-	"log"
+	log "github.com/sirupsen/logrus"
 )
 
 func init() {
+	log.SetFormatter(&log.JSONFormatter{})
 	viper.SetConfigFile(`config.json`)
 	err := viper.ReadInConfig()
 	if err != nil {
@@ -24,6 +25,6 @@ func Run() {
 	db := config.ConnectDB()
 
 	config.InitRouter(db, r).InitializeRoutes()
-	config.Run(r, ":8800")
+	config.Run(r)
 
 }
