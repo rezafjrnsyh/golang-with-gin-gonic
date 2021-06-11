@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/viper"
 	"log"
 	"net/url"
+	"strconv"
 )
 
 type Server struct {
@@ -16,7 +17,7 @@ type Server struct {
 	Router *gin.Engine
 }
 
-func ConnectDB() *sql.DB {
+func ConnectDB() (*sql.DB, error) {
 	dbHost := viper.GetString(`database.host`)
 	dbPort := viper.GetString(`database.port`)
 	dbUser := viper.GetString(`database.user`)
@@ -38,7 +39,7 @@ func ConnectDB() *sql.DB {
 	_, err = db.Exec(query)
 	if err != nil {
 		log.Printf("Error %s when creating product table", err)
-		return nil
+		return nil, err
 	}
 
 
@@ -48,7 +49,7 @@ func ConnectDB() *sql.DB {
 		log.Fatal(err)
 	}
 	log.Println("DataBase Successfully Connected")
-	return db
+	return db, err
 }
 
 func (server *Server) Close() {
@@ -56,6 +57,14 @@ func (server *Server) Close() {
 }
 
 func CreateRouter() *gin.Engine {
+	data := viper.GetString("debug")
+	debug, err := strconv.ParseBool(data)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	if  debug == true  {
+		gin.SetMode(gin.DebugMode)
+	}
 	gin.SetMode(gin.ReleaseMode)
 	return gin.Default()
 }
@@ -68,7 +77,8 @@ func InitRouter(db *sql.DB, r *gin.Engine) *Server {
 }
 
 func (server *Server) InitializeRoutes()  {
-	r := server.Router.Group("/v1")
+	version := viper.GetString("appVersion")
+	r := server.Router.Group(version)
 	controller.NewArticleController(server.DB, r)
 	controller.CreateUserController(server.Router)
 }

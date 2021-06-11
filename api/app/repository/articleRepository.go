@@ -37,6 +37,7 @@ func (a *articleRepo) FindArticle() ([]*domain.Article, error) {
 		}
 		articles = append(articles, article)
 	}
+	defer a.db.Close()
 	return articles, nil
 }
 
@@ -59,9 +60,8 @@ func (a *articleRepo) FindArticleById(id int) (*domain.Article, error) {
 	article := new(domain.Article)
 
 	query := fmt.Sprintf(`SELECT id, title, content FROM article WHERE id=?`)
-	err := a.db.QueryRow(query, id).
-		Scan(&article.ID,&article.Title, &article.Content)
-	if err != nil {
+	if err := a.db.QueryRow(query, id).
+		Scan(&article.ID,&article.Title, &article.Content); err != nil {
 		return nil, errors.New("article ID not found")
 	}
 	return article, nil
@@ -69,7 +69,7 @@ func (a *articleRepo) FindArticleById(id int) (*domain.Article, error) {
 
 func (a *articleRepo) Delete(id int) (int64, error) {
 
-	query := "DELETE FROM article WHERE id = ?"
+	query := fmt.Sprintf("DELETE FROM article WHERE id = ?")
 	result, err := a.db.Exec(query, id)
 	if err != nil {
 		return 0, err
@@ -82,7 +82,7 @@ func (a *articleRepo) Delete(id int) (int64, error) {
 }
 
 func (a *articleRepo) Update(article *domain.Article) (*domain.Article, error) {
-	query := "UPDATE article SET id = ?, title = ?, content = ? WHERE id = ?"
+	query := fmt.Sprintf("UPDATE article SET id = ?, title = ?, content = ? WHERE id = ?")
 	result, err := a.db.Exec(query, &article.ID, &article.Title, &article.Content)
 	if err != nil {
 		s := strings.Split(err.Error(), ":")

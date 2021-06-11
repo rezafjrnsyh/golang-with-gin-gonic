@@ -18,16 +18,21 @@ type articleController struct {
 	ArticleService domain.IArticleService
 }
 
+const (
+	ARTICLE_LIST_PATH  = "/article/list"
+	ARTICLE_CREATE_PATH = "/article"
+	ARTICLE_GET_BY_ID_PATH = "/article/:id"
+	ARTICLE_DELETE_PATH = "/article/:id"
+)
 func NewArticleController(db *sql.DB, r *gin.RouterGroup)  {
 	Controller := articleController{ArticleService: service.NewArticleService(db)}
-	r.GET("/article/list", Controller.GetAllArticle )
-	r.POST("/article",middleware.Auth2, Controller.AddArticle)
-	r.GET("/article/:id", middleware.Auth2, Controller.GetArticleById)
-	r.DELETE("/article/:id", middleware.Auth2, Controller.DeleteArticle)
+	r.GET(ARTICLE_LIST_PATH, Controller.GetAllArticle )
+	r.POST(ARTICLE_CREATE_PATH,middleware.Auth2, Controller.AddArticle)
+	r.GET(ARTICLE_GET_BY_ID_PATH, middleware.Auth2, Controller.GetArticleById)
+	r.DELETE(ARTICLE_DELETE_PATH, middleware.Auth2, Controller.DeleteArticle)
 }
 
 func (s *articleController) GetAllArticle(c *gin.Context) {
-	c.Header("Content-Type", "application/json")
 	articles, err := s.ArticleService.GetArticles()
 	fmt.Print("err",err)
 	if err != nil {
@@ -45,10 +50,6 @@ func (s *articleController) AddArticle(c *gin.Context) {
 		errField := fmt.Errorf("field %s can't be empty", s[3])
 		c.JSON(http.StatusBadRequest, gin.H{"message": errField.Error(), "code": 400})
 	} else {
-		title := c.DefaultPostForm("title", "Guest")
-		content := c.PostForm("content")
-		fmt.Println("controller : ", title , content)
-
 		newArticle, err := s.ArticleService.AddArticle(&article)
 
 		if err != nil {

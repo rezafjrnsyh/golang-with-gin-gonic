@@ -8,5 +8,7 @@
     "user": "root",
     "pass": "",
     "name": "baf"
-  }
+  },
+  "debug": false,
+  "appVersion" : "v1"
 }

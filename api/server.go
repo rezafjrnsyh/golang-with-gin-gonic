@@ -20,9 +20,12 @@ func init() {
 }
 
 func Run() {
-	r := config.CreateRouter()
+	db, err := config.ConnectDB()
+	if err !=nil {
+		log.Fatal(err.Error())
+	}
 
-	db := config.ConnectDB()
+	r := config.CreateRouter()
 
 	config.InitRouter(db, r).InitializeRoutes()
 	config.Run(r)

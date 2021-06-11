@@ -2,8 +2,8 @@ package domain
 
 type Article struct {
 	ID      int    `json:"id" form:"id"`
-	Title   string `json:"title" form:"title" binding:"required"`
-	Content string `json:"content" form:"content" binding:"required"`
+	Title   string `json:"title" binding:"required"`
+	Content string `json:"content" binding:"required"`
 }
 
 type IArticleService interface {
