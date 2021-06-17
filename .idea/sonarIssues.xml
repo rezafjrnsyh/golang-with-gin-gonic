@@ -8,6 +8,16 @@
             <set />
           </value>
         </entry>
+        <entry key="$PROJECT_DIR$/api/app/repository/articleRepository.go">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/api/app/repository/article_test.go">
+          <value>
+            <set />
+          </value>
+        </entry>
         <entry key="$PROJECT_DIR$/api/app/service/articleService.go">
           <value>
             <set />
@@ -74,6 +84,41 @@
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/utils/message.go">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../hello/app.go">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../hello/main.go">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../hello/waitGroup.go">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../hello/withgroup.go">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../main.go">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/handson-golang/resto-routine/main/app.go">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/handson-golang/stateful-goroutine/src/main/app.go">
           <value>
             <set />
           </value>

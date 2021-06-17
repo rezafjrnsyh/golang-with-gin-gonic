@@ -4,18 +4,20 @@ import (
 	"baf/api/app/controller"
 	"database/sql"
 	"fmt"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/spf13/viper"
 	"log"
 	"net/url"
-	"strconv"
 )
 
 type Server struct {
 	DB	*sql.DB
 	Router *gin.Engine
 }
+
+const DEBUG_MODE = "debug"
 
 func ConnectDB() (*sql.DB, error) {
 	dbHost := viper.GetString(`database.host`)
@@ -57,16 +59,14 @@ func (server *Server) Close() {
 }
 
 func CreateRouter() *gin.Engine {
-	data := viper.GetString("debug")
-	debug, err := strconv.ParseBool(data)
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-	if  debug == true  {
+	mode := viper.GetString("mode")
+	if  mode == DEBUG_MODE {
 		gin.SetMode(gin.DebugMode)
 	}
 	gin.SetMode(gin.ReleaseMode)
-	return gin.Default()
+	r := gin.Default()
+	r.Use(cors.Default())
+	return r
 }
 
 func InitRouter(db *sql.DB, r *gin.Engine) *Server {
@@ -83,8 +83,9 @@ func (server *Server) InitializeRoutes()  {
 	controller.CreateUserController(server.Router)
 }
 
-func Run(r *gin.Engine) {
+func Run(r *gin.Engine) error {
 	port := viper.GetString(`server.port`)
 	fmt.Println("Listening to port 8800")
-	log.Fatal(r.Run(port))
+	err := r.Run(port)
+	return err
 }

@@ -14,6 +14,10 @@ type articleRepo struct {
 	db	*sql.DB
 }
 
+func (r *articleRepo) Close() {
+	r.db.Close()
+}
+
 func NewArticleRepo(db *sql.DB) domain.IArticleRepository {
 	return &articleRepo{db:db}
 }

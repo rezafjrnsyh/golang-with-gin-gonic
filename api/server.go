@@ -2,8 +2,8 @@ package api
 
 import (
 	"baf/api/config"
-	"github.com/spf13/viper"
 	log "github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
 func init() {
@@ -28,6 +28,8 @@ func Run() {
 	r := config.CreateRouter()
 
 	config.InitRouter(db, r).InitializeRoutes()
-	config.Run(r)
-
+	errun := config.Run(r)
+	if errun != nil {
+		log.Fatal(errun.Error())
+	}
 }
