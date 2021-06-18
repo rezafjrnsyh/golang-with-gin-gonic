@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"baf/api/domain"
+	"baf/api/app/domain"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -23,9 +23,15 @@ func NewArticleRepo(db *sql.DB) domain.IArticleRepository {
 }
 
 func (a *articleRepo) FindArticle() ([]*domain.Article, error) {
+	// Membuat object slice articles
 	articles := make([]*domain.Article, 0)
+	//defer a.db.Close()
 
+
+	// Untuk format query
 	query := fmt.Sprintf(`SELECT id, title, content FROM article`)
+
+	// Eksekusi query
 	rows, err := a.db.Query(query)
 	if err != nil {
 		return nil, err
@@ -41,7 +47,6 @@ func (a *articleRepo) FindArticle() ([]*domain.Article, error) {
 		}
 		articles = append(articles, article)
 	}
-	defer a.db.Close()
 	return articles, nil
 }
 

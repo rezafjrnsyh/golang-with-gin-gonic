@@ -9,6 +9,6 @@
     "pass": "",
     "name": "baf"
   },
-  "mode": "debug",
+  "mode": "release",
   "appVersion" : "v1"
 }

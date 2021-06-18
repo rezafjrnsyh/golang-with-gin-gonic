@@ -20,6 +20,7 @@ type Server struct {
 const DEBUG_MODE = "debug"
 
 func ConnectDB() (*sql.DB, error) {
+	// Disini untuk mendapatkan key & value di config.json
 	dbHost := viper.GetString(`database.host`)
 	dbPort := viper.GetString(`database.port`)
 	dbUser := viper.GetString(`database.user`)
@@ -34,13 +35,14 @@ func ConnectDB() (*sql.DB, error) {
 		log.Fatal(err)
 	}
 
+	// membuat table
 	query := `CREATE TABLE IF NOT EXISTS article(id int primary key auto_increment, title text, content text)`
 	//ctx, cancelfunc := context.WithTimeout(context.Background(), 5*time.Second)
 	//
 	//defer cancelfunc()
 	_, err = db.Exec(query)
 	if err != nil {
-		log.Printf("Error %s when creating product table", err)
+		log.Printf("Error %s when creating table", err)
 		return nil, err
 	}
 
@@ -54,17 +56,24 @@ func ConnectDB() (*sql.DB, error) {
 	return db, err
 }
 
-func (server *Server) Close() {
-	_ = server.DB.Close()
-}
+//func (server *Server) Close() {
+//	_ = server.DB.Close()
+//}
 
 func CreateRouter() *gin.Engine {
 	mode := viper.GetString("mode")
+
+	// Untuk Set Mode
 	if  mode == DEBUG_MODE {
 		gin.SetMode(gin.DebugMode)
+	} else {
+		gin.SetMode(gin.ReleaseMode)
 	}
-	gin.SetMode(gin.ReleaseMode)
+
+	// Menginstance object router
 	r := gin.Default()
+
+	// untuk config cors
 	r.Use(cors.Default())
 	return r
 }
@@ -78,6 +87,7 @@ func InitRouter(db *sql.DB, r *gin.Engine) *Server {
 
 func (server *Server) InitializeRoutes()  {
 	version := viper.GetString("appVersion")
+	// Membuat sebuah group router
 	r := server.Router.Group(version)
 	controller.NewArticleController(server.DB, r)
 	controller.CreateUserController(server.Router)

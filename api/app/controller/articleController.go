@@ -1,8 +1,8 @@
 package controller
 
 import (
+	"baf/api/app/domain"
 	"baf/api/app/service"
-	"baf/api/domain"
 	"baf/middleware"
 	"baf/utils"
 	"database/sql"
@@ -24,10 +24,11 @@ const (
 	ARTICLE_GET_BY_ID_PATH = "/article/:id"
 	ARTICLE_DELETE_PATH = "/article/:id"
 )
+
 func NewArticleController(db *sql.DB, r *gin.RouterGroup)  {
 	Controller := articleController{ArticleService: service.NewArticleService(db)}
-	r.GET(ARTICLE_LIST_PATH, Controller.GetAllArticle )
-	r.POST(ARTICLE_CREATE_PATH,middleware.Auth2, Controller.AddArticle)
+	r.GET(ARTICLE_LIST_PATH, middleware.Auth2, Controller.GetAllArticle )
+	r.POST(ARTICLE_CREATE_PATH, middleware.Auth2, Controller.AddArticle)
 	r.GET(ARTICLE_GET_BY_ID_PATH, middleware.Auth2, Controller.GetArticleById)
 	r.DELETE(ARTICLE_DELETE_PATH, middleware.Auth2, Controller.DeleteArticle)
 }

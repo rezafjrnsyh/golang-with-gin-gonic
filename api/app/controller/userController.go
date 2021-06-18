@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"baf/api/domain"
+	"baf/api/app/domain"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"net/http"

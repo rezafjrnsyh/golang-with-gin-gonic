@@ -1,11 +1,11 @@
 package repository
 
 import (
-	"baf/api/domain"
+	"baf/api/app/domain"
 	"database/sql"
 	sqlmock "github.com/DATA-DOG/go-sqlmock"
-	"github.com/stretchr/testify/assert"
 	"log"
+	"reflect"
 	"testing"
 )
 
@@ -24,37 +24,55 @@ func NewMock() (*sql.DB, sqlmock.Sqlmock) {
 	return db, mock
 }
 
-func TestFind(t *testing.T) {
+func TestArticleRepo_FindArticleById(t *testing.T) {
 	db, mock := NewMock()
-	repo := &articleRepo{db: db}
+	r := &articleRepo{db: db}
 	defer func() {
-		repo.Close()
+		r.Close()
 	}()
 
-	query := "SELECT id, title, content FROM article"
+	tests := []struct{
+		name string
+		r domain.IArticleRepository
+		msgId int
+		mock func()
+		want *domain.Article
+		wantErr bool
+	}{
+		{
+			name:  "OK",
+			r:     r,
+			msgId: 1,
+			mock: func() {
+				//We added one row
+				rows := sqlmock.NewRows([]string{"Id", "Title", "Content"}).AddRow(1, "title", "body")
+				t.Log("logs rows: " , rows)
+				query := "SELECT id, title, content FROM article"
+				mock.ExpectQuery(query).WithArgs(1).WillReturnRows(rows)
+			},
+			want: &domain.Article{
+				ID:        1,
+				Title:     "title",
+				Content:   "body",
+			},
+		},
+	}
 
-	rows := sqlmock.NewRows([]string{"id", "title", "content"}).AddRow(a.ID, a.Title, a.Content)
-	mock.ExpectQuery(query).WithArgs(a.ID).WillReturnRows(rows)
-
-	article, err := repo.FindArticleById(a.ID)
-	assert.NotNil(t, article)
-	assert.NoError(t, err)
-}
-
-func TestFindByIdErr(t *testing.T) {
-	db, mock := NewMock()
-	repo := &articleRepo{db: db}
-	defer func() {
-		repo.Close()
-	}()
-
-	query := "SELECT id, title, content FROM article WHERE id = \\?"
-
-	rows := sqlmock.NewRows([]string{"id", "title", "content"})
-
-	mock.ExpectQuery(query).WithArgs(a.ID).WillReturnRows(rows)
-
-	article, err := repo.FindArticleById(a.ID)
-	assert.Empty(t, article)
-	assert.Error(t, err)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// t.Error("log")
+			tt.mock()
+			got, err := tt.r.FindArticleById(tt.msgId)
+			t.Error(got)
+			if (err != nil) != tt.wantErr {
+				// t.Error("called")
+				t.Errorf("Get() error new = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if err == nil && !reflect.DeepEqual(got, tt.want) {
+				// t.Error("called2")
+				t.Errorf("Get() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }

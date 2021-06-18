@@ -1,8 +1,8 @@
 package service
 
 import (
+	"baf/api/app/domain"
 	"baf/api/app/repository"
-	"baf/api/domain"
 	"database/sql"
 	"fmt"
 )
